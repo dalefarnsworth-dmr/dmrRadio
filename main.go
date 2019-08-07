@@ -33,10 +33,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dalefarnsworth/codeplug/codeplug"
-	"github.com/dalefarnsworth/codeplug/debug"
-	"github.com/dalefarnsworth/codeplug/dfu"
-	"github.com/dalefarnsworth/codeplug/userdb"
+	"github.com/dalefarnsworth-dmr/codeplug"
+	"github.com/dalefarnsworth-dmr/debug"
+	"github.com/dalefarnsworth-dmr/dfu"
+	"github.com/dalefarnsworth-dmr/userdb"
 )
 
 func errorf(s string, v ...interface{}) {
