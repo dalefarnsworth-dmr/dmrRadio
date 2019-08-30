@@ -55,7 +55,7 @@ func usage() {
 	errorf("\twriteUV380Users <usersFile>\n")
 	errorf("\treadSPIFlash <filename>\n")
 	errorf("\tgetUsers <usersFile>\n")
-	errorf("\tgetInputUsers <usersFile>\n")
+	errorf("\tgetMergedUsers <usersFile>\n")
 	errorf("\tcodeplugToText <codeplugFile> <textFile>\n")
 	errorf("\ttextToCodeplug <textFile> <codeplugFile>\n")
 	errorf("\tcodeplugToJSON <codeplugFile> <jsonFile>\n")
@@ -120,6 +120,7 @@ func progressCallback(aPrefixes []string) func(cur int) error {
 			if prefixIndex != 0 {
 				fmt.Println()
 			}
+
 			prefix = prefixes[prefixIndex]
 			prefixIndex++
 		}
@@ -309,13 +310,12 @@ func readMD380Users() (err error) {
 		}
 	}()
 
-	return dfu.ReadUsers(file)
+	return dfu.ReadMD380Users(file)
 }
 
 func writeMD380Users() error {
-	filename := usersFilename()
-
 	prefixes := []string{
+		"Preparing to write users",
 		"Erasing flash memory",
 		"Writing users",
 	}
@@ -326,13 +326,18 @@ func writeMD380Users() error {
 	}
 	defer dfu.Close()
 
-	return dfu.WriteUsers(filename)
+	db, err := userdb.NewFileDB(usersFilename())
+	if err != nil {
+		return err
+	}
+	return dfu.WriteMD380Users(db)
 }
 
 func writeMD2017Users() error {
 	filename := usersFilename()
 
 	prefixes := []string{
+		"Preparing to write users",
 		"Erasing flash memory",
 		"Writing users",
 	}
@@ -343,20 +348,16 @@ func writeMD2017Users() error {
 	}
 	defer df.Close()
 
-	var file *os.File
-	file, err = os.Open(filename)
+	db, err := userdb.NewFileDB(filename)
 	if err != nil {
 		return err
 	}
-
-	users := dfu.ParseUV380Users(file)
-	return df.WriteUV380Users(users)
+	return df.WriteUV380Users(db)
 }
 
 func writeUV380Users() error {
-	filename := usersFilename()
-
 	prefixes := []string{
+		"Preparing to write users",
 		"Erasing flash memory",
 		"Writing users",
 	}
@@ -367,15 +368,12 @@ func writeUV380Users() error {
 	}
 	defer df.Close()
 
-	var file *os.File
-	file, err = os.Open(filename)
+	db, err := userdb.NewFileDB(usersFilename())
 	if err != nil {
 		return err
 	}
 
-	users := dfu.ParseUV380Users(file)
-
-	return df.WriteUV380Users(users)
+	return df.WriteUV380Users(db)
 }
 
 func getUsers() error {
@@ -398,11 +396,16 @@ func getUsers() error {
 		"Retrieving Users file",
 	}
 
-	db := userdb.New()
-	return db.WriteMD380ToolsFile(filename, progressCallback(prefixes))
+	db, err := userdb.NewCuratedDB()
+	if err != nil {
+		return err
+	}
+
+	db.SetProgressCallback(progressCallback(prefixes))
+	return db.WriteMD380ToolsFile(filename)
 }
 
-func getInputUsers() error {
+func getMergedUsers() error {
 	flags := flag.NewFlagSet("getUsers", flag.ExitOnError)
 
 	flags.Usage = func() {
@@ -422,8 +425,13 @@ func getInputUsers() error {
 		"Retrieving Users file",
 	}
 
-	db := userdb.Input()
-	return db.WriteMD380ToolsFile(filename, progressCallback(prefixes))
+	db, err := userdb.NewMergedDB()
+	if err != nil {
+		return err
+	}
+
+	db.SetProgressCallback(progressCallback(prefixes))
+	return db.WriteMD380ToolsFile(filename)
 }
 
 func writeFirmware() error {
@@ -443,6 +451,7 @@ func writeFirmware() error {
 	filename := args[0]
 
 	prefixes := []string{
+		"Preparing to firmware",
 		"Erasing flash memory",
 		"Writing firmware",
 	}
@@ -651,7 +660,7 @@ func main() {
 		"writemd2017users": writeMD2017Users,
 		"writeuv380users":  writeUV380Users,
 		"getusers":         getUsers,
-		"getinputusers":    getInputUsers,
+		"getmergedusers":   getMergedUsers,
 		"writefirmware":    writeFirmware,
 		"texttocodeplug":   textToCodeplug,
 		"codeplugtotext":   codeplugToText,
