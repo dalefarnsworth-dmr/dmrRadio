@@ -24,6 +24,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -62,6 +63,8 @@ func usage() {
 	errorf("\tjsonToCodeplug <jsonFile> <codeplugFile>\n")
 	errorf("\tcodeplugToXLSX <codeplugFile> <xlsxFile>\n")
 	errorf("\txlsxToCodeplug <xlsxFile> <codeplugFile>\n")
+	errorf("\tuserCountries <usersFile>\n")
+	errorf("\tfilterUsers <countriesFile> <inUsersFile> <outUsersFile>)\n")
 	errorf("\tversion\n")
 	errorf("Use '%s <subCommand> -h' for subCommand help\n", os.Args[0])
 	os.Exit(1)
@@ -622,6 +625,103 @@ func codeplugToXLSX() error {
 	return cp.ExportXLSX(xlsxFilename)
 }
 
+func userCountries() error {
+	flags := flag.NewFlagSet("userCountries", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		errorf("  where <usersFilename> is the name of a user file.\n")
+		errorf("  A list of the countries in <usesfilename> will be written to stdout.\n")
+		flags.PrintDefaults()
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 1 {
+		flags.Usage()
+	}
+	usersFilename := args[0]
+	db, err := userdb.NewFileDB(usersFilename)
+	if err != nil {
+		return err
+	}
+
+	countries, err := db.AllCountries()
+	if err != nil {
+		return err
+	}
+
+	for _, country := range countries {
+		fmt.Println(country)
+	}
+
+	return nil
+}
+
+func filterUsers() error {
+	flags := flag.NewFlagSet("filterUsers", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <countriesFile> <inUsersFile> <outUsersFile>\n", os.Args[0], os.Args[1])
+		errorf("  where <countriesFile> conains a list of countries, one per line.\n")
+		errorf("    Blank lines and lines beginning with '#' are ignored.\n")
+		errorf("    Only users in the listed countries will be included in the output.\n")
+		errorf("  inUsersFile is an existing userdb file\n")
+		errorf("    If inUsersFile is \"\", a curated users file will be downloaded.\n")
+		errorf("  outUsersFile will be created with users filtered by countries.\n")
+
+		flags.PrintDefaults()
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 3 {
+		flags.Usage()
+	}
+	countriesFilename := args[0]
+	inUsersFilename := args[1]
+	outUsersFilename := args[2]
+
+	countriesFile, err := os.Open(countriesFilename)
+	if err != nil {
+		return err
+	}
+
+	var db *userdb.UsersDB
+	if inUsersFilename == "" {
+		db, err = userdb.NewCuratedDB()
+	} else {
+		db, err = userdb.NewFileDB(inUsersFilename)
+	}
+	if err != nil {
+		return err
+	}
+
+	countries := make([]string, 0)
+	scanner := bufio.NewScanner(countriesFile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		line = strings.SplitN(line, "#", 2)[0]
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		countries = append(countries, line)
+	}
+
+	options := userdb.DefaultOptions
+	options.FilterByCountries = true
+	db.SetOptions(options)
+
+	db.IncludeCountries(countries...)
+
+	fmt.Println(len(db.Users()), "Users")
+	return db.WriteMD380ToolsFile(outUsersFilename)
+}
+
 func printVersion() error {
 	flags := flag.NewFlagSet("version", flag.ExitOnError)
 
@@ -668,6 +768,8 @@ func main() {
 		"codeplugtojson":   codeplugToJSON,
 		"xlsxtocodeplug":   xlsxToCodeplug,
 		"codeplugtoxlsx":   codeplugToXLSX,
+		"usercountries":    userCountries,
+		"filterusers":      filterUsers,
 		"version":          printVersion,
 	}
 
