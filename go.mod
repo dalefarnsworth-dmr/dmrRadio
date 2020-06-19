@@ -7,7 +7,7 @@ require (
 	github.com/dalefarnsworth-dmr/debug v1.0.19
 	github.com/dalefarnsworth-dmr/dfu v1.0.19
 	github.com/dalefarnsworth-dmr/stdfu v1.0.19 // indirect
-	github.com/dalefarnsworth-dmr/userdb v1.0.20
+	github.com/dalefarnsworth-dmr/userdb v1.0.22
 	github.com/frankban/quicktest v1.10.0 // indirect
 	github.com/google/go-cmp v0.5.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
