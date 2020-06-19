@@ -64,7 +64,7 @@ func usage() {
 	errorf("\tcodeplugToXLSX <codeplugFile> <xlsxFile>\n")
 	errorf("\txlsxToCodeplug <xlsxFile> <codeplugFile>\n")
 	errorf("\tuserCountries <usersFile>\n")
-	errorf("\tfilterUsers <countriesFile> <inUsersFile> <outUsersFile>)\n")
+	errorf("\tfilterUsers <countriesFile> <inUsersFile> <outUsersFile>\n")
 	errorf("\tversion\n")
 	errorf("Use '%s <subCommand> -h' for subCommand help\n", os.Args[0])
 	os.Exit(1)
