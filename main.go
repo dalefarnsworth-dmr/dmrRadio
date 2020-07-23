@@ -137,7 +137,7 @@ func readCodeplug() error {
 	var typ string
 	var freq string
 
-	flags := flag.NewFlagSet("writeCodeplug", flag.ExitOnError)
+	flags := flag.NewFlagSet("readCodeplug", flag.ExitOnError)
 	flags.StringVar(&typ, "model", "", "<model name>")
 	flags.StringVar(&freq, "freq", "", "<frequency range>")
 
@@ -271,7 +271,7 @@ func readSPIFlash() (err error) {
 }
 
 func usersFilename() string {
-	flags := flag.NewFlagSet("writeUsers", flag.ExitOnError)
+	flags := flag.NewFlagSet("usersFilename", flag.ExitOnError)
 
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
@@ -409,7 +409,7 @@ func getUsers() error {
 }
 
 func getMergedUsers() error {
-	flags := flag.NewFlagSet("getUsers", flag.ExitOnError)
+	flags := flag.NewFlagSet("getMergedUsers", flag.ExitOnError)
 
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
