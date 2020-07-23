@@ -47,6 +47,7 @@ func errorf(s string, v ...interface{}) {
 func usage() {
 	errorf("Usage %s <subCommand> args\n", os.Args[0])
 	errorf("subCommands:\n")
+	errorf("\tnewCodeplug -model <model> -freq <freqRange> <codeplugFile>\n")
 	errorf("\treadCodeplug -model <model> -freq <freqRange> <codeplugFile>\n")
 	errorf("\twriteCodeplug <codeplugFile>\n")
 	errorf("\twriteFirmware <firmwareFile>\n")
@@ -131,6 +132,63 @@ func progressCallback(aPrefixes []string) func(cur int) error {
 		fmt.Printf("%s... %3d%%\r", prefix, percent)
 		return nil
 	}
+}
+
+func newCodeplug() error {
+	var typ string
+	var freq string
+
+	flags := flag.NewFlagSet("writeCodeplug", flag.ExitOnError)
+	flags.StringVar(&typ, "model", "", "<model name>")
+	flags.StringVar(&freq, "freq", "", "<frequency range>")
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s -model <modelName> -freq <freqRange> codePlugFilename\n", os.Args[0], os.Args[1])
+		flags.PrintDefaults()
+		errorf("modelName must be chosen from the following list,\n")
+		errorf("and freqRange must be one of its associated values.\n")
+		types, freqs := allTypesFrequencyRanges()
+		for _, typ := range types {
+			errorf("\t%s\n", typ)
+			for _, freq := range freqs[typ] {
+				errorf("\t\t%s\n", "\""+freq+"\"")
+			}
+		}
+		os.Exit(1)
+	}
+
+	typeFreqs := codeplug.AllFrequencyRanges()
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 1 {
+		flags.Usage()
+	}
+	if typeFreqs[typ] == nil {
+		errorf("bad modelName\n\n")
+		flags.Usage()
+	}
+	freqMap := make(map[string]bool)
+	for _, freq := range typeFreqs[typ] {
+		freqMap[freq] = true
+	}
+	if !freqMap[freq] {
+		errorf("bad freqRange\n\n")
+		flags.Usage()
+	}
+	filename := args[0]
+
+	cp, err := codeplug.NewCodeplug(codeplug.FileTypeNew, "")
+	if err != nil {
+		return err
+	}
+
+	err = cp.Load(typ, freq)
+	if err != nil {
+		return err
+	}
+
+	return cp.SaveAs(filename)
 }
 
 func readCodeplug() error {
@@ -752,6 +810,7 @@ func main() {
 	subCommandName := strings.ToLower(os.Args[1])
 
 	subCommands := map[string]func() error{
+		"newcodeplug":      newCodeplug,
 		"readcodeplug":     readCodeplug,
 		"writecodeplug":    writeCodeplug,
 		"readspiflash":     readSPIFlash,
