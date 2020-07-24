@@ -45,28 +45,36 @@ func errorf(s string, v ...interface{}) {
 }
 
 func usage() {
+	subCommandUsages := []string{
+		"codeplugToJSON <codeplugFile> <jsonFile>",
+		"codeplugToText <codeplugFile> <textFile>",
+		"codeplugToXLSX <codeplugFile> <xlsxFile>",
+		"filterUsers <countriesFile> <inUsersFile> <outUsersFile>",
+		"getMergedUsers <usersFile>",
+		"getUsers <usersFile>",
+		"jsonToCodeplug <jsonFile> <codeplugFile>",
+		"newCodeplug -model <model> -freq <freqRange> <codeplugFile>",
+		"readCodeplug -model <model> -freq <freqRange> <codeplugFile>",
+		"readMD380Users <usersFile>",
+		"readSPIFlash <filename>",
+		"textToCodeplug <textFile> <codeplugFile>",
+		"userCountries <usersFile>",
+		"version",
+		"writeCodeplug <codeplugFile>",
+		"writeFirmware <firmwareFile>",
+		"writeMD2017Users <usersFile>",
+		"writeMD380Users <usersFile>",
+		"writeUV380Users <usersFile>",
+		"xlsxToCodeplug <xlsxFile> <codeplugFile>",
+	}
+
 	errorf("Usage %s <subCommand> args\n", os.Args[0])
 	errorf("subCommands:\n")
-	errorf("\tnewCodeplug -model <model> -freq <freqRange> <codeplugFile>\n")
-	errorf("\treadCodeplug -model <model> -freq <freqRange> <codeplugFile>\n")
-	errorf("\twriteCodeplug <codeplugFile>\n")
-	errorf("\twriteFirmware <firmwareFile>\n")
-	errorf("\treadMD380Users <usersFile>\n")
-	errorf("\twriteMD380Users <usersFile>\n")
-	errorf("\twriteMD2017Users <usersFile>\n")
-	errorf("\twriteUV380Users <usersFile>\n")
-	errorf("\treadSPIFlash <filename>\n")
-	errorf("\tgetUsers <usersFile>\n")
-	errorf("\tgetMergedUsers <usersFile>\n")
-	errorf("\tcodeplugToText <codeplugFile> <textFile>\n")
-	errorf("\ttextToCodeplug <textFile> <codeplugFile>\n")
-	errorf("\tcodeplugToJSON <codeplugFile> <jsonFile>\n")
-	errorf("\tjsonToCodeplug <jsonFile> <codeplugFile>\n")
-	errorf("\tcodeplugToXLSX <codeplugFile> <xlsxFile>\n")
-	errorf("\txlsxToCodeplug <xlsxFile> <codeplugFile>\n")
-	errorf("\tuserCountries <usersFile>\n")
-	errorf("\tfilterUsers <countriesFile> <inUsersFile> <outUsersFile>\n")
-	errorf("\tversion\n")
+
+	for _, s := range subCommandUsages {
+		errorf("\t%s\n", s)
+	}
+
 	errorf("Use '%s <subCommand> -h' for subCommand help\n", os.Args[0])
 	os.Exit(1)
 }
