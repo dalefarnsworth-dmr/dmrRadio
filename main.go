@@ -288,8 +288,9 @@ func writeCodeplug() error {
 	}
 
 	prefixes := []string{
-		"Preparing to write codeplug",
-		"Writing codeplug to radio.",
+		"Preparing to write codeplug to radio",
+		"Erasing the radio's codeplug",
+		"Writing codeplug to radio",
 	}
 
 	return cp.WriteRadio(progressCallback(prefixes))
