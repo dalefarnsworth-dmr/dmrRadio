@@ -9,6 +9,8 @@
 ; The name of the installer
 Name "dmrRadio"
 
+Target x86-unicode
+
 ; The file to write
 OutFile "dmrRadio-${VERSION}-installer.exe"
 
