@@ -49,6 +49,7 @@ func usage() {
 		"codeplugToJSON <codeplugFile> <jsonFile>",
 		"codeplugToText <codeplugFile> <textFile>",
 		"codeplugToXLSX <codeplugFile> <xlsxFile>",
+		"countryCounts <usersFile>",
 		"filterUsers <countriesFile> <inUsersFile> <outUsersFile>",
 		"getMergedUsers <usersFile>",
 		"getUsers <usersFile>",
@@ -698,7 +699,7 @@ func userCountries() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename> <countriesFilename>\n", os.Args[0], os.Args[1])
 		errorf("  where <usersFilename> is the name of a user file.\n")
-		errorf("  A list of the countries in <usesfilename> will be written to <countriesFilename>.\n")
+		errorf("  A list of the countries in <usersfilename> will be written to <countriesFilename>.\n")
 		flags.PrintDefaults()
 		os.Exit(1)
 	}
@@ -728,10 +729,66 @@ func userCountries() error {
 	}
 
 	for _, country := range countries {
+		if country == "" {
+			country = "<none>"
+		}
+
 		fmt.Fprintln(countriesFile, country)
 	}
 
 	countriesFile.Close()
+
+	return nil
+}
+
+func countryCounts() error {
+	flags := flag.NewFlagSet("countryCounts", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		errorf("  where <usersFilename> is the name of a user file.\n")
+		errorf("  The number of users for each country in <usesfilename> will be output.\n")
+		flags.PrintDefaults()
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+
+	usersFilename := args[0]
+
+	db, err := userdb.NewFileDB(usersFilename)
+	if err != nil {
+		return err
+	}
+
+	options := userdb.DefaultOptions
+	options.AbbrevCountries = false
+	db.SetOptions(options)
+
+	countries, err := db.AllCountries()
+	if err != nil {
+		return err
+	}
+
+	users := db.Users()
+
+	for _, country := range countries {
+		count := 0
+		for _, user := range users {
+			if user.Country == country {
+				count++
+			}
+		}
+
+		if country == "" {
+			country = "<none>"
+		}
+
+		fmt.Printf("%7d %s\n", count, country)
+	}
+
+	fmt.Printf("%7d %s\n", len(users), "Total Users")
 
 	return nil
 }
@@ -784,6 +841,10 @@ func filterUsers() error {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
+		}
+
+		if line == "<none>" {
+			line = ""
 		}
 
 		countries = append(countries, line)
@@ -848,6 +909,7 @@ func main() {
 		"codeplugtoxlsx":   codeplugToXLSX,
 		"usercountries":    userCountries,
 		"filterusers":      filterUsers,
+		"countrycounts":    countryCounts,
 		"version":          printVersion,
 	}
 
