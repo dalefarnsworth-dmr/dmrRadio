@@ -698,7 +698,7 @@ func userCountries() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename> <countriesFilename>\n", os.Args[0], os.Args[1])
 		errorf("  where <usersFilename> is the name of a user file.\n")
-		errorf("  A list of the countries in <usesfilename> will be written to <countriesFile>.\n")
+		errorf("  A list of the countries in <usesfilename> will be written to <countriesFilename>.\n")
 		flags.PrintDefaults()
 		os.Exit(1)
 	}
