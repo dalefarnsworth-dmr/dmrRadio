@@ -58,7 +58,7 @@ func usage() {
 		"readMD380Users <usersFile>",
 		"readSPIFlash <filename>",
 		"textToCodeplug <textFile> <codeplugFile>",
-		"userCountries <usersFile>",
+		"userCountries <usersFile> <countriesFile>",
 		"version",
 		"writeCodeplug <codeplugFile>",
 		"writeFirmware <firmwareFile>",
@@ -696,19 +696,22 @@ func userCountries() error {
 	flags := flag.NewFlagSet("userCountries", flag.ExitOnError)
 
 	flags.Usage = func() {
-		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		errorf("Usage: %s %s <usersFilename> <countriesFilename>\n", os.Args[0], os.Args[1])
 		errorf("  where <usersFilename> is the name of a user file.\n")
-		errorf("  A list of the countries in <usesfilename> will be written to stdout.\n")
+		errorf("  A list of the countries in <usesfilename> will be written to <countriesFile>.\n")
 		flags.PrintDefaults()
 		os.Exit(1)
 	}
 
 	flags.Parse(os.Args[2:])
 	args := flags.Args()
-	if len(args) != 1 {
+	if len(args) != 2 {
 		flags.Usage()
 	}
+
 	usersFilename := args[0]
+	countriesFilename := args[1]
+
 	db, err := userdb.NewFileDB(usersFilename)
 	if err != nil {
 		return err
@@ -719,9 +722,16 @@ func userCountries() error {
 		return err
 	}
 
-	for _, country := range countries {
-		fmt.Println(country)
+	countriesFile, err := os.Create(countriesFilename)
+	if err != nil {
+		return err
 	}
+
+	for _, country := range countries {
+		fmt.Fprintln(countriesFile, country)
+	}
+
+	countriesFile.Close()
 
 	return nil
 }
