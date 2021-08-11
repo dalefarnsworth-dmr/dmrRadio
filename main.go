@@ -52,6 +52,7 @@ func usage() {
 		"countryCounts <usersFile>",
 		"filterUsers <countriesFile> <inUsersFile> <outUsersFile>",
 		"getMergedUsers <usersFile>",
+		"getAbbreviatedUsers <usersFile>",
 		"getUsers <usersFile>",
 		"jsonToCodeplug <jsonFile> <codeplugFile>",
 		"newCodeplug -model <model> -freq <freqRange> <codeplugFile>",
@@ -524,6 +525,47 @@ func getUsers() error {
 		return err
 	}
 
+	options := userdb.DefaultOptions
+	options.AbbrevStates = false
+	options.AbbrevCountries = false
+	db.SetOptions(options)
+
+	db.SetProgressCallback(progressCallback(prefixes))
+	return db.WriteMD380ToolsFile(filename)
+}
+
+func getAbbreviatedUsers() error {
+	flags := flag.NewFlagSet("getAbbreviatedUsers", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		flags.PrintDefaults()
+		errorf("\nDownloads a curated user database into <usersFilename>.\n")
+		errorf("The names of many states and countries are abbreviated.\n")
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 1 {
+		flags.Usage()
+	}
+	filename := args[0]
+
+	prefixes := []string{
+		"Retrieving Users file",
+	}
+
+	db, err := userdb.NewCuratedDB()
+	if err != nil {
+		return err
+	}
+
+	options := userdb.DefaultOptions
+	options.AbbrevStates = true
+	options.AbbrevCountries = true
+	db.SetOptions(options)
+
 	db.SetProgressCallback(progressCallback(prefixes))
 	return db.WriteMD380ToolsFile(filename)
 }
@@ -958,27 +1000,28 @@ func main() {
 	subCommandName := strings.ToLower(os.Args[1])
 
 	subCommands := map[string]func() error{
-		"newcodeplug":        newCodeplug,
-		"readcodeplug":       readCodeplug,
-		"writecodeplug":      writeCodeplug,
-		"readspiflash":       readSPIFlash,
-		"readmd380users":     readMD380Users,
-		"writemd380users":    writeMD380Users,
-		"writemd2017users":   writeMD2017Users,
-		"writeuv380users":    writeUV380Users,
-		"getusers":           getUsers,
-		"getmergedusers":     getMergedUsers,
-		"writemd380firmware": writeMD380Firmware,
-		"texttocodeplug":     textToCodeplug,
-		"codeplugtotext":     codeplugToText,
-		"jsontocodeplug":     jsonToCodeplug,
-		"codeplugtojson":     codeplugToJSON,
-		"xlsxtocodeplug":     xlsxToCodeplug,
-		"codeplugtoxlsx":     codeplugToXLSX,
-		"usercountries":      userCountries,
-		"filterusers":        filterUsers,
-		"countrycounts":      countryCounts,
-		"version":            printVersion,
+		"newcodeplug":         newCodeplug,
+		"readcodeplug":        readCodeplug,
+		"writecodeplug":       writeCodeplug,
+		"readspiflash":        readSPIFlash,
+		"readmd380users":      readMD380Users,
+		"writemd380users":     writeMD380Users,
+		"writemd2017users":    writeMD2017Users,
+		"writeuv380users":     writeUV380Users,
+		"getusers":            getUsers,
+		"getabbreviatedusers": getAbbreviatedUsers,
+		"getmergedusers":      getMergedUsers,
+		"writemd380firmware":  writeMD380Firmware,
+		"texttocodeplug":      textToCodeplug,
+		"codeplugtotext":      codeplugToText,
+		"jsontocodeplug":      jsonToCodeplug,
+		"codeplugtojson":      codeplugToJSON,
+		"xlsxtocodeplug":      xlsxToCodeplug,
+		"codeplugtoxlsx":      codeplugToXLSX,
+		"usercountries":       userCountries,
+		"filterusers":         filterUsers,
+		"countrycounts":       countryCounts,
+		"version":             printVersion,
 	}
 
 	subCommand := subCommands[subCommandName]
