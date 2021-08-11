@@ -62,7 +62,7 @@ func usage() {
 		"userCountries <usersFile> <countriesFile>",
 		"version",
 		"writeCodeplug <codeplugFile>",
-		"writeFirmware <firmwareFile>",
+		"writeMD380Firmware <firmwareFile>",
 		"writeMD2017Users <usersFile>",
 		"writeMD380Users <usersFile>",
 		"writeUV380Users <usersFile>",
@@ -77,6 +77,7 @@ func usage() {
 	}
 
 	errorf("Use '%s <subCommand> -h' for subCommand help\n", os.Args[0])
+	errorf("\n\tNote that the capitalization of the <subCommand> is ignored.\n")
 	os.Exit(1)
 }
 
@@ -154,13 +155,14 @@ func newCodeplug() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s -model <modelName> -freq <freqRange> codePlugFilename\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
-		errorf("modelName must be chosen from the following list,\n")
-		errorf("and freqRange must be one of its associated values.\n")
+		errorf("\nCreates a new default codeplug for the given radio model.\n\n")
+		errorf("\tmodelName must be chosen from the following list,\n")
+		errorf("\tand freqRange must be one of its associated values.\n")
 		types, freqs := allTypesFrequencyRanges()
 		for _, typ := range types {
-			errorf("\t%s\n", typ)
+			errorf("\t\t%s\n", typ)
 			for _, freq := range freqs[typ] {
-				errorf("\t\t%s\n", "\""+freq+"\"")
+				errorf("\t\t\t%s\n", "\""+freq+"\"")
 			}
 		}
 		os.Exit(1)
@@ -209,15 +211,16 @@ func readCodeplug() error {
 	flags.StringVar(&freq, "freq", "", "<frequency range>")
 
 	flags.Usage = func() {
-		errorf("Usage: %s %s -model <modelName> -freq <freqRange> codePlugFilename\n", os.Args[0], os.Args[1])
+		errorf("Usage: %s %s -model <modelName> -freq <freqRange> <codePlugFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
-		errorf("modelName must be chosen from the following list,\n")
-		errorf("and freqRange must be one of its associated values.\n")
+		errorf("\nReads a codeplug from the radio into <codePlugFilename>.\n\n")
+		errorf("\tmodelName must be chosen from the following list,\n")
+		errorf("\tand freqRange must be one of its associated values.\n")
 		types, freqs := allTypesFrequencyRanges()
 		for _, typ := range types {
-			errorf("\t%s\n", typ)
+			errorf("\t\t%s\n", typ)
 			for _, freq := range freqs[typ] {
-				errorf("\t\t%s\n", "\""+freq+"\"")
+				errorf("\t\t\t%s\n", "\""+freq+"\"")
 			}
 		}
 		os.Exit(1)
@@ -273,6 +276,7 @@ func writeCodeplug() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <codeplugFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nWrites the codeplug in <codeplugFilename> to the radio.\n")
 		os.Exit(1)
 	}
 
@@ -303,6 +307,7 @@ func readSPIFlash() (err error) {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <filename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nReads the contents of the radio's SPI Flash into <filename>.\n")
 		os.Exit(1)
 	}
 
@@ -338,12 +343,13 @@ func readSPIFlash() (err error) {
 	return dfu.ReadSPIFlash(file)
 }
 
-func usersFilename() string {
-	flags := flag.NewFlagSet("usersFilename", flag.ExitOnError)
+func readMD380Users() (err error) {
+	flags := flag.NewFlagSet("readMD380Users", flag.ExitOnError)
 
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nReads the user database from the radio to <usersFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -353,11 +359,7 @@ func usersFilename() string {
 		flags.Usage()
 	}
 
-	return args[0]
-}
-
-func readMD380Users() (err error) {
-	filename := usersFilename()
+	filename := args[0]
 
 	prefixes := []string{
 		"Preparing to read users",
@@ -385,6 +387,23 @@ func readMD380Users() (err error) {
 }
 
 func writeMD380Users() error {
+	flags := flag.NewFlagSet("writeMD380Users", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		flags.PrintDefaults()
+		errorf("\nWrites the user database in <usersFilename> to the radio.\n")
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 1 {
+		flags.Usage()
+	}
+
+	filename := args[0]
+
 	prefixes := []string{
 		"Preparing to write users",
 		"Erasing flash memory",
@@ -397,7 +416,7 @@ func writeMD380Users() error {
 	}
 	defer dfu.Close()
 
-	db, err := userdb.NewFileDB(usersFilename())
+	db, err := userdb.NewFileDB(filename)
 	if err != nil {
 		return err
 	}
@@ -405,7 +424,22 @@ func writeMD380Users() error {
 }
 
 func writeMD2017Users() error {
-	filename := usersFilename()
+	flags := flag.NewFlagSet("writeMD2017Users", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		flags.PrintDefaults()
+		errorf("\nWrites the user database in <usersFilename> to the radio.\n")
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 1 {
+		flags.Usage()
+	}
+
+	filename := args[0]
 
 	prefixes := []string{
 		"Preparing to write users",
@@ -427,6 +461,23 @@ func writeMD2017Users() error {
 }
 
 func writeUV380Users() error {
+	flags := flag.NewFlagSet("writeUV380Users", flag.ExitOnError)
+
+	flags.Usage = func() {
+		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
+		flags.PrintDefaults()
+		errorf("\nWrites the user database in <usersFilename> to the radio.\n")
+		os.Exit(1)
+	}
+
+	flags.Parse(os.Args[2:])
+	args := flags.Args()
+	if len(args) != 1 {
+		flags.Usage()
+	}
+
+	filename := args[0]
+
 	prefixes := []string{
 		"Preparing to write users",
 		"Erasing flash memory",
@@ -439,7 +490,7 @@ func writeUV380Users() error {
 	}
 	defer df.Close()
 
-	db, err := userdb.NewFileDB(usersFilename())
+	db, err := userdb.NewFileDB(filename)
 	if err != nil {
 		return err
 	}
@@ -453,6 +504,7 @@ func getUsers() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nDownloads a curated user database into <usersFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -482,6 +534,8 @@ func getMergedUsers() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nDownloads the user database from multiple websites and merges them\n")
+		errorf("into <usersFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -505,12 +559,13 @@ func getMergedUsers() error {
 	return db.WriteMD380ToolsFile(filename)
 }
 
-func writeFirmware() error {
-	flags := flag.NewFlagSet("writeFirmware", flag.ExitOnError)
+func writeMD380Firmware() error {
+	flags := flag.NewFlagSet("writeMD380Firmware", flag.ExitOnError)
 
 	flags.Usage = func() {
 		errorf("Usage: %s %s <firmwareFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nWrites the contents of <firmwareFilename> into the MD380 radio.\n")
 		os.Exit(1)
 	}
 
@@ -535,7 +590,7 @@ func writeFirmware() error {
 
 	file, err := os.Open(filename)
 	if err != nil {
-		l.Fatalf("writeFirmware: %s", err.Error())
+		l.Fatalf("writeMD380Firmware: %s", err.Error())
 	}
 
 	defer file.Close()
@@ -549,6 +604,8 @@ func textToCodeplug() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <textFilename> <codeplugFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nCreates a codeplug file, <codeplugFilename>, from the textual\n")
+		errorf("representation in <textFilename>\n")
 		os.Exit(1)
 	}
 
@@ -574,6 +631,8 @@ func codeplugToText() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <codeplugFilename> <textFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nCreates a <textfilename> containing a textual representation of\n")
+		errorf("of the codeplug in <codeplugFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -599,6 +658,8 @@ func jsonToCodeplug() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <jsonFilename> <codeplugFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nCreates a codeplug file, <codeplugFilename>, from the JSON\n")
+		errorf("representation in <jsonFilename>\n")
 		os.Exit(1)
 	}
 
@@ -624,6 +685,8 @@ func codeplugToJSON() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <codeplugFilename> <jsonFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nCreates <jsonfilename> containing a JSON representation of\n")
+		errorf("of the codeplug in <codeplugFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -649,6 +712,8 @@ func xlsxToCodeplug() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <xlsxFilename> <codeplugFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nCreates a codeplug file, <codeplugFilename>, from the spreadsheet\n")
+		errorf("in <xlsxFilename>\n")
 		os.Exit(1)
 	}
 
@@ -674,6 +739,8 @@ func codeplugToXLSX() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <codeplugFilename> <xlsxFilename>\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nCreates <xlsxfilename> containing a spreadsheet representation of\n")
+		errorf("of the codeplug in <codeplugFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -698,9 +765,9 @@ func userCountries() error {
 
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename> <countriesFilename>\n", os.Args[0], os.Args[1])
-		errorf("  where <usersFilename> is the name of a user file.\n")
-		errorf("  A list of the countries in <usersfilename> will be written to <countriesFilename>.\n")
+		errorf("  where <usersFilename> is the name of a user file.\n\n")
 		flags.PrintDefaults()
+		errorf("\nA list of the countries in <usersfilename> will be written to <countriesFilename>.\n")
 		os.Exit(1)
 	}
 
@@ -747,8 +814,8 @@ func countryCounts() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s <usersFilename>\n", os.Args[0], os.Args[1])
 		errorf("  where <usersFilename> is the name of a user file.\n")
-		errorf("  The number of users for each country in <usesfilename> will be output.\n")
 		flags.PrintDefaults()
+		errorf("\nThe number of users for each country in <usesfilename> will be output.\n")
 		os.Exit(1)
 	}
 
@@ -798,12 +865,12 @@ func filterUsers() error {
 
 	flags.Usage = func() {
 		errorf("Usage: %s %s <countriesFile> <inUsersFile> <outUsersFile>\n", os.Args[0], os.Args[1])
-		errorf("  where <countriesFile> conains a list of countries, one per line.\n")
+		errorf("  where <countriesFile> contains a list of countries, one per line.\n\n")
 		errorf("    Blank lines and lines beginning with '#' are ignored.\n")
 		errorf("    Only users in the listed countries will be included in the output.\n")
-		errorf("  inUsersFile is an existing userdb file\n")
-		errorf("    If inUsersFile is \"\", a curated users file will be downloaded.\n")
-		errorf("  outUsersFile will be created with users filtered by countries.\n")
+		errorf("  <inUsersFile> is an existing userdb file\n")
+		errorf("    If <inUsersFile> is \"\", a curated users file will be downloaded.\n")
+		errorf("  <outUsersFile> will be created with users filtered by countries.\n")
 
 		flags.PrintDefaults()
 		os.Exit(1)
@@ -866,6 +933,7 @@ func printVersion() error {
 	flags.Usage = func() {
 		errorf("Usage: %s %s\n", os.Args[0], os.Args[1])
 		flags.PrintDefaults()
+		errorf("\nOutputs the version number of %s.\n", os.Args[0])
 		os.Exit(1)
 	}
 
@@ -890,27 +958,27 @@ func main() {
 	subCommandName := strings.ToLower(os.Args[1])
 
 	subCommands := map[string]func() error{
-		"newcodeplug":      newCodeplug,
-		"readcodeplug":     readCodeplug,
-		"writecodeplug":    writeCodeplug,
-		"readspiflash":     readSPIFlash,
-		"readmd380users":   readMD380Users,
-		"writemd380users":  writeMD380Users,
-		"writemd2017users": writeMD2017Users,
-		"writeuv380users":  writeUV380Users,
-		"getusers":         getUsers,
-		"getmergedusers":   getMergedUsers,
-		"writefirmware":    writeFirmware,
-		"texttocodeplug":   textToCodeplug,
-		"codeplugtotext":   codeplugToText,
-		"jsontocodeplug":   jsonToCodeplug,
-		"codeplugtojson":   codeplugToJSON,
-		"xlsxtocodeplug":   xlsxToCodeplug,
-		"codeplugtoxlsx":   codeplugToXLSX,
-		"usercountries":    userCountries,
-		"filterusers":      filterUsers,
-		"countrycounts":    countryCounts,
-		"version":          printVersion,
+		"newcodeplug":        newCodeplug,
+		"readcodeplug":       readCodeplug,
+		"writecodeplug":      writeCodeplug,
+		"readspiflash":       readSPIFlash,
+		"readmd380users":     readMD380Users,
+		"writemd380users":    writeMD380Users,
+		"writemd2017users":   writeMD2017Users,
+		"writeuv380users":    writeUV380Users,
+		"getusers":           getUsers,
+		"getmergedusers":     getMergedUsers,
+		"writemd380firmware": writeMD380Firmware,
+		"texttocodeplug":     textToCodeplug,
+		"codeplugtotext":     codeplugToText,
+		"jsontocodeplug":     jsonToCodeplug,
+		"codeplugtojson":     codeplugToJSON,
+		"xlsxtocodeplug":     xlsxToCodeplug,
+		"codeplugtoxlsx":     codeplugToXLSX,
+		"usercountries":      userCountries,
+		"filterusers":        filterUsers,
+		"countrycounts":      countryCounts,
+		"version":            printVersion,
 	}
 
 	subCommand := subCommands[subCommandName]
