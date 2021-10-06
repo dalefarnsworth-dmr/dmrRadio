@@ -1,3 +1,5 @@
+.DS_Store
+.*.sw?
 dmrRadio
 dmrRadio.exe
 replaces
