@@ -417,7 +417,7 @@ func writeMD380Users() error {
 	}
 	defer dfu.Close()
 
-	db, err := userdb.NewFileDB(filename)
+	db, err := userdb.New(userdb.FromFile(filename), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
@@ -454,7 +454,7 @@ func writeMD2017Users() error {
 	}
 	defer df.Close()
 
-	db, err := userdb.NewFileDB(filename)
+	db, err := userdb.New(userdb.FromFile(filename), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
@@ -491,7 +491,7 @@ func writeUV380Users() error {
 	}
 	defer df.Close()
 
-	db, err := userdb.NewFileDB(filename)
+	db, err := userdb.New(userdb.FromFile(filename), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
@@ -520,15 +520,10 @@ func getUsers() error {
 		"Retrieving Users file",
 	}
 
-	db, err := userdb.NewCuratedDB()
+	db, err := userdb.New(userdb.CuratedUsers(), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
-
-	options := userdb.DefaultOptions
-	options.AbbrevStates = false
-	options.AbbrevCountries = false
-	db.SetOptions(options)
 
 	db.SetProgressCallback(progressCallback(prefixes))
 	return db.WriteMD380ToolsFile(filename)
@@ -556,15 +551,10 @@ func getAbbreviatedUsers() error {
 		"Retrieving Users file",
 	}
 
-	db, err := userdb.NewCuratedDB()
+	db, err := userdb.New(userdb.CuratedUsers(), userdb.Abbreviate(true))
 	if err != nil {
 		return err
 	}
-
-	options := userdb.DefaultOptions
-	options.AbbrevStates = true
-	options.AbbrevCountries = true
-	db.SetOptions(options)
 
 	db.SetProgressCallback(progressCallback(prefixes))
 	return db.WriteMD380ToolsFile(filename)
@@ -592,7 +582,7 @@ func getMergedUsers() error {
 		"Retrieving Users file",
 	}
 
-	db, err := userdb.NewMergedDB()
+	db, err := userdb.New(userdb.MergeNewUsers(), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
@@ -822,7 +812,7 @@ func userCountries() error {
 	usersFilename := args[0]
 	countriesFilename := args[1]
 
-	db, err := userdb.NewFileDB(usersFilename)
+	db, err := userdb.New(userdb.FromFile(usersFilename), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
@@ -866,14 +856,10 @@ func countryCounts() error {
 
 	usersFilename := args[0]
 
-	db, err := userdb.NewFileDB(usersFilename)
+	db, err := userdb.New(userdb.FromFile(usersFilename), userdb.Abbreviate(false))
 	if err != nil {
 		return err
 	}
-
-	options := userdb.DefaultOptions
-	options.AbbrevCountries = false
-	db.SetOptions(options)
 
 	countries, err := db.AllCountries()
 	if err != nil {
@@ -932,16 +918,6 @@ func filterUsers() error {
 		return err
 	}
 
-	var db *userdb.UsersDB
-	if inUsersFilename == "" {
-		db, err = userdb.NewCuratedDB()
-	} else {
-		db, err = userdb.NewFileDB(inUsersFilename)
-	}
-	if err != nil {
-		return err
-	}
-
 	countries := make([]string, 0)
 	scanner := bufio.NewScanner(countriesFile)
 	for scanner.Scan() {
@@ -959,11 +935,13 @@ func filterUsers() error {
 		countries = append(countries, line)
 	}
 
-	options := userdb.DefaultOptions
-	options.FilterByCountries = true
-	db.SetOptions(options)
-
-	db.IncludeCountries(countries...)
+	db, err := userdb.New(userdb.Abbreviate(false), userdb.FilterByCountries(countries...))
+	if err != nil {
+		return err
+	}
+	if inUsersFilename != "" {
+		db.SetOptions(userdb.FromFile(inUsersFilename))
+	}
 
 	fmt.Println(len(db.Users()), "Users")
 	return db.WriteMD380ToolsFile(outUsersFilename)
