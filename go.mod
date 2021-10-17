@@ -3,7 +3,7 @@ module github.com/dalefarnsworth-dmr/dmrRadio
 go 1.12
 
 require (
-	github.com/dalefarnsworth-dmr/codeplug v1.0.23
+	github.com/dalefarnsworth-dmr/codeplug v1.0.25
 	github.com/dalefarnsworth-dmr/debug v1.0.20
 	github.com/dalefarnsworth-dmr/dfu v1.0.20
 	github.com/dalefarnsworth-dmr/stdfu v1.0.20 // indirect
