@@ -7,7 +7,7 @@ require (
 	github.com/dalefarnsworth-dmr/debug v1.0.20
 	github.com/dalefarnsworth-dmr/dfu v1.0.20
 	github.com/dalefarnsworth-dmr/stdfu v1.0.20 // indirect
-	github.com/dalefarnsworth-dmr/userdb v1.0.26
+	github.com/dalefarnsworth-dmr/userdb v1.0.29
 	github.com/frankban/quicktest v1.14.0 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
