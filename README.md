@@ -6,6 +6,9 @@ This command line program operates on a number of DMR radios.  It can
 * read and write the user database, and
 * convert codeplugs to/from JSON, text, and spreadsheet files.
 
+The program executables for Linux and Windows can be found at
+[https://www.farnsworth.org/dale/codeplug/dmrRadio/downloads/](https://www.farnsworth.org/dale/codeplug/dmrRadio/downloads/).
+
 ## Author
 Dale Farnsworth
 
